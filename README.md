@@ -23,3 +23,9 @@ Set local env:
 cp .env .env.local
 # Now edit `.env.local` with your API key from OpenAI
 ```
+
+## Development
+
+```bash
+yarn run dev
+```
