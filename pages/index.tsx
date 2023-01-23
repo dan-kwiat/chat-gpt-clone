@@ -3,6 +3,7 @@ import { forwardRef, LegacyRef, useRef, useState } from "react"
 import Head from "next/head"
 import { Inter } from "@next/font/google"
 import { SubmitHandler, useForm } from "react-hook-form"
+import useServerSentEvents from "hooks/useServerSentEvents"
 
 interface FormData {
   prompt: string
@@ -62,9 +63,16 @@ function MessageHuman({ message }: { message: string }) {
 }
 
 const MessageBot = forwardRef(
-  ({ message }: { message: string }, ref?: LegacyRef<HTMLParagraphElement>) => {
+  (
+    { message, hidden }: { message: string; hidden?: boolean },
+    ref?: LegacyRef<HTMLParagraphElement>
+  ) => {
     return (
-      <div className="w-full border-b border-black/10 dark:border-gray-900/50 text-gray-800 dark:text-gray-100 group bg-gray-50 dark:bg-[#444654]">
+      <div
+        className={`${
+          hidden ? "hidden" : "block"
+        } w-full border-b border-black/10 dark:border-gray-900/50 text-gray-800 dark:text-gray-100 group bg-gray-50 dark:bg-[#444654]`}
+      >
         <div className="text-base gap-4 md:gap-6 m-auto md:max-w-2xl lg:max-w-2xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0">
           <div className="w-[30px] flex flex-col relative items-end">
             <div className="bg-[#10a37f] relative w-8 h-8 p-1 rounded-sm text-white flex items-center justify-center">
@@ -148,90 +156,76 @@ export default function Page() {
     reset,
   } = useForm<FormData>()
 
-  function onToken(token: string) {
-    console.log(token)
+  const { openStream } = useServerSentEvents<RequestQueryConversation>({
+    baseUrl: "/api/converse-edge",
+    config: {
+      withCredentials: false,
+    },
+    onData,
+    onOpen: () => {
+      reset()
+      if (bioNode.current) {
+        console.log("resetting")
+        bioNode.current.innerHTML = ""
+      }
+    },
+    onClose: () => {
+      document
+        .getElementById(`speech-${conversation.history.length - 1}`)
+        ?.scrollIntoView({ behavior: "smooth" })
+      setStreaming(false)
+      setConversation((prev) => {
+        return {
+          ...prev,
+          history: [
+            ...prev.history,
+            {
+              speaker: "bot",
+              text: bioNode.current?.innerHTML.replace(/<br>/g, "\n") as string,
+            },
+          ],
+        }
+      })
+    },
+    onError: (event) => {
+      console.error(event)
+      setStreaming(false)
+      setError(`Something went wrong with the request`)
+    },
+  })
+
+  function onData(data: string) {
     if (!bioNode.current) {
       return
     }
-    bioNode.current.innerHTML = bioNode.current.innerHTML + token
+    try {
+      let text = JSON.parse(data).choices[0].text
+      bioNode.current.innerHTML = bioNode.current.innerHTML + text
+    } catch (err) {
+      console.log(`Failed to parse data: ${data}`)
+      setError(`Failed to parse the response`)
+    }
   }
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
     if (bioNode.current) {
       bioNode.current.innerHTML = "..."
     }
-    const newHistory: Conversation["history"] = [
-      ...conversation.history,
-      { speaker: "human", text: data.prompt },
-    ]
+    setStreaming(true)
+
     const newConversation: Conversation = {
-      history: newHistory,
+      history: [
+        ...conversation.history,
+        { speaker: "human", text: data.prompt },
+      ],
     }
 
     setConversation(newConversation)
-    reset()
-    const query: RequestQueryConversation = {
-      conversation: JSON.stringify(newConversation),
-      temperature: "0.7",
-    }
-    const params = new URLSearchParams()
-    Object.keys(query).forEach((key) => {
-      params.set(key, query[key as keyof RequestQueryConversation])
-    })
-    setStreaming(true)
-    const evtSource = new EventSource(`/api/converse-edge?${params}`, {
-      withCredentials: false,
-    })
-    function handleEvent(event: MessageEvent) {
-      if (event.data === "[DONE]") {
-        // should we remove the eventlistener here?
-        // if (bioNode.current && line.current) {
-        //   bioNode.current.innerHTML = (bioNode.current.innerHTML + line.current)
-        //     .trimStart()
-        //     .replace(/\"/g, "")
-        //   line.current = ""
-        // }
-
-        document
-          .getElementById(`speech-${conversation.history.length - 1}`)
-          ?.scrollIntoView({ behavior: "smooth" })
-
-        evtSource.close()
-        setStreaming(false)
-        setConversation((prev) => {
-          return {
-            ...prev,
-            history: [
-              ...prev.history,
-              {
-                speaker: "bot",
-                text: bioNode.current?.innerHTML.replace(
-                  /<br>/g,
-                  "\n"
-                ) as string,
-              },
-            ],
-          }
-        })
-      } else {
-        try {
-          let text = JSON.parse(event.data).choices[0].text
-          onToken(text)
-        } catch (err) {
-          console.log(`Failed to parse data: ${event.data}`)
-          setError(`Failed to parse the response`)
-        }
-      }
-    }
-    evtSource.addEventListener("message", handleEvent)
-    evtSource.addEventListener("error", (err) => {
-      console.error(err)
-      setError(`Something went wrong with the request`)
-    })
-    evtSource.addEventListener("open", (err) => {
-      if (bioNode.current) {
-        bioNode.current.innerHTML = ""
-      }
+    const evtSource = openStream({
+      query: {
+        conversation: JSON.stringify(newConversation),
+        temperature: "0.7",
+      },
     })
   }
 
@@ -255,7 +249,7 @@ export default function Page() {
                   <MessageBot key={i} message={x.text} />
                 )
               )}
-              {streaming ? <MessageBot ref={bioNode} message="..." /> : null}
+              <MessageBot ref={bioNode} message="..." hidden={!streaming} />
               <div className="w-full h-48 flex-shrink-0"></div>
             </div>
           </div>
