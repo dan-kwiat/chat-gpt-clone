@@ -164,7 +164,7 @@ export default function Page() {
       reset()
       if (bioNode.current) {
         console.log("resetting")
-        bioNode.current.innerHTML = ""
+        bioNode.current.innerText = ""
       }
     },
     onClose: () => {
@@ -179,7 +179,7 @@ export default function Page() {
             ...prev.history,
             {
               speaker: "bot",
-              text: bioNode.current?.innerHTML.replace(/<br>/g, "\n") as string,
+              text: bioNode.current?.innerText.replace(/<br>/g, "\n") as string,
             },
           ],
         }
@@ -198,7 +198,7 @@ export default function Page() {
     }
     try {
       let text = JSON.parse(data).choices[0].text
-      bioNode.current.innerHTML = bioNode.current.innerHTML + text
+      bioNode.current.innerText = bioNode.current.innerText + text
     } catch (err) {
       console.log(`Failed to parse data: ${data}`)
       setError(`Failed to parse the response`)
@@ -207,7 +207,7 @@ export default function Page() {
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
     if (bioNode.current) {
-      bioNode.current.innerHTML = "..."
+      bioNode.current.innerText = "..."
     }
     setStreaming(true)
 
