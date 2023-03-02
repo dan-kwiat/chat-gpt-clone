@@ -22,15 +22,23 @@ export interface RequestQueryConversation {
   temperature: string
 }
 
-function getPrompt({ conversation }: { conversation: Conversation }) {
-  let prompt = `You are a chat bot trying to be has helpful as possible to a human. Continue the conversation:\n\n`
+type Messages = Parameters<typeof openai.createChatCompletion>[0]["messages"]
+
+function getMessages({
+  conversation,
+}: {
+  conversation: Conversation
+}): Messages {
+  let messages: Messages = [
+    { role: "system", content: "You are a helpful assistant." },
+  ]
   conversation.history.forEach((speech: Speech, i) => {
-    prompt += `${speech.speaker === "human" ? "Human" : "Chat Bot"}:\n\n`
-    prompt += `${speech.text}\n\n`
+    messages.push({
+      role: speech.speaker === "human" ? "user" : "assistant",
+      content: speech.text,
+    })
   })
-  prompt += `Chat Bot:\n\n`
-  console.log(prompt)
-  return prompt
+  return messages
 }
 
 function validateConversation(conversation: Conversation) {
@@ -74,12 +82,10 @@ const handler = async (req: NextRequest) => {
   }
 
   try {
-    const completion = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: getPrompt({
-        conversation,
-      }),
-      max_tokens: 80,
+    const completion = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: getMessages({ conversation }),
+      max_tokens: 256,
       temperature,
       stream: true,
     })

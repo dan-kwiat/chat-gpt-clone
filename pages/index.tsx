@@ -197,8 +197,10 @@ export default function Page() {
       return
     }
     try {
-      let text = JSON.parse(data).choices[0].text
-      bioNode.current.innerText = bioNode.current.innerText + text
+      let text = JSON.parse(data).choices[0].delta.content
+      if (text) {
+        bioNode.current.innerText = bioNode.current.innerText + text
+      }
     } catch (err) {
       console.log(`Failed to parse data: ${data}`)
       setError(`Failed to parse the response`)
@@ -328,8 +330,8 @@ export default function Page() {
               >
                 ChatGPT
               </a>{" "}
-              web app clone. Stack: NextJS Edge API Routes, GPT-3.5
-              (`text-davinci-003`), TailwindCSS.
+              web app clone. Stack: NextJS Edge API Routes, gpt-3.5-turbo,
+              TailwindCSS.
             </div>
           </div>
         </div>
