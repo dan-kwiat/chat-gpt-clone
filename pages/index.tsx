@@ -291,13 +291,20 @@ export default function Page() {
                   rows={1}
                   placeholder=""
                   onKeyUp={(e) => {
-                    if (e.key === "Enter") {
+                    if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault()
                       handleSubmit(onSubmit)()
+                    } else {
+                      const textarea = e.target as HTMLTextAreaElement
+                      textarea.style.height = "auto" // Reset the height to its default to allow it to shrink when deleting text
+                      textarea.style.height = `${textarea.scrollHeight}px` // Set the height to the scroll height so that it expands on new lines
                     }
                   }}
                   className="max-h-52 h-6 overflow-y-hidden m-0 w-full resize-none border-0 bg-transparent p-0 pl-2 pr-7 focus:ring-0 focus-visible:ring-0 dark:bg-transparent md:pl-0"
-                  {...register("prompt", { required: true })}
+                  {...register("prompt", {
+                    required: true,
+                    disabled: streaming,
+                  })}
                 />
                 <button
                   type="submit"
