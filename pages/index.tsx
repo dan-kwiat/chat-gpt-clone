@@ -328,17 +328,24 @@ export default function Page() {
           </form>
           <div className="lg:mx-auto lg:max-w-3xl">
             <p className="text-sm py-4 text-red-500">{error}</p>
-            <div className="px-3 pt-2 pb-3 text-center text-xs text-black/50 dark:text-white/50 md:px-4 md:pt-3 md:pb-6">
+            <div className="px-3 space-x-2 pt-2 pb-3 text-center text-xs text-black/50 dark:text-white/50 md:px-4 md:pt-3 md:pb-6">
               <a
-                href="https://chat.openai.com/"
+                href="https://github.com/dan-kwiat/chat-gpt-clone"
                 target="_blank"
                 rel="noreferrer"
                 className="underline"
               >
-                ChatGPT
+                GitHub Repo
               </a>{" "}
-              web app clone. Stack: NextJS Edge API Routes, gpt-3.5-turbo,
-              TailwindCSS.
+              <span>&middot;</span>{" "}
+              <a
+                href="https://dan.kwiat.info/projects"
+                target="_blank"
+                rel="noreferrer"
+                className="underline"
+              >
+                More Projects
+              </a>
             </div>
           </div>
         </div>
