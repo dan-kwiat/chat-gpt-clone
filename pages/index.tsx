@@ -82,9 +82,7 @@ export default function Page() {
     },
     onData,
     onOpen: () => {
-      // reset()
       if (answerNode.current) {
-        console.log("resetting")
         answerNode.current.innerText = ""
       }
     },
@@ -157,7 +155,6 @@ export default function Page() {
   useEffect(() => {
     const observer = new ResizeObserver((entries) => {
       // TODO: debounce scroll?
-      console.log("scrolling", document.body.scrollHeight)
       window.scroll({
         top: document.body.scrollHeight,
         behavior: "smooth",
@@ -243,11 +240,12 @@ export default function Page() {
                 rows={1}
                 placeholder=""
                 onKeyUp={(e) => {
+                  const textarea = e.target as HTMLTextAreaElement
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault()
+                    textarea.style.height = "auto"
                     handleSubmit(onSubmit)()
                   } else {
-                    const textarea = e.target as HTMLTextAreaElement
                     textarea.style.height = "auto" // Reset the height to its default to allow it to shrink when deleting text
                     textarea.style.height = `${textarea.scrollHeight}px` // Set the height to the scroll height so that it expands on new lines
                   }
