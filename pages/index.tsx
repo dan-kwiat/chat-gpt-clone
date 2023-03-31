@@ -181,13 +181,6 @@ export default function Page() {
 
   return (
     <div className={inter.className}>
-      {/* <div className="border-b">
-        <div className="md:max-w-2xl lg:max-w-2xl xl:max-w-3xl mx-auto">
-          <h1 className="dark:text-white text-lg font-bold py-4">
-            ChatGPT Clone
-          </h1>
-        </div>
-      </div> */}
       <Head>
         <link rel="icon" href="/favicon.ico" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -197,12 +190,19 @@ export default function Page() {
         <meta name="og:url" content="https://clone-gpt.vercel.app/" />
       </Head>
       <main className="relative w-full flex flex-col items-center text-sm overflow-hidden pb-24 md:pb-40">
-        {conversation.history.map((x, i) =>
-          x.speaker === "human" ? (
-            <MessageHuman key={i} message={x.text} />
-          ) : (
-            <MessageBot key={i} message={x.text} />
+        {conversation.history.length > 0 ? (
+          conversation.history.map((x, i) =>
+            x.speaker === "human" ? (
+              <MessageHuman key={i} message={x.text} />
+            ) : (
+              <MessageBot key={i} message={x.text} />
+            )
           )
+        ) : (
+          <div className="px-3 py-12 text-center dark:text-white">
+            <h1 className="text-lg font-bold">CloneGPT</h1>
+            <p className="mt-4">Start typing below 👇</p>
+          </div>
         )}
         <MessageBot ref={answerNode} message="" hidden={!streaming} />
       </main>
