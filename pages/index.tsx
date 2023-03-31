@@ -135,7 +135,10 @@ export default function Page() {
     }
     setStreaming(true)
     setValue("prompt", "")
-    document.getElementsByTagName("textarea")[0].style.height = "auto"
+
+    if (typeof document !== "undefined") {
+      document.getElementsByTagName("textarea")[0].style.height = "auto"
+    }
 
     const newConversation: Conversation = {
       history: [
