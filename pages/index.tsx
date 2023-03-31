@@ -180,7 +180,7 @@ export default function Page() {
   }, [conversation.history])
 
   return (
-    <div className={`dark:bg-gray-800 ${inter.className}`}>
+    <div className={inter.className}>
       {/* <div className="border-b">
         <div className="md:max-w-2xl lg:max-w-2xl xl:max-w-3xl mx-auto">
           <h1 className="dark:text-white text-lg font-bold py-4">
@@ -196,7 +196,7 @@ export default function Page() {
         <meta name="og:title" content="CloneGPT" />
         <meta name="og:url" content="https://clone-gpt.vercel.app/" />
       </Head>
-      <main className="relative w-full flex flex-col items-center dark:bg-gray-800 text-sm overflow-hidden pb-24 md:pb-40">
+      <main className="relative w-full flex flex-col items-center text-sm overflow-hidden pb-24 md:pb-40">
         {conversation.history.map((x, i) =>
           x.speaker === "human" ? (
             <MessageHuman key={i} message={x.text} />
