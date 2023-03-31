@@ -1,4 +1,8 @@
-import { Conversation, RequestQueryConversation } from "./api/converse-edge"
+import {
+  Conversation,
+  HEADERS_STREAM,
+  RequestBodyPrompt,
+} from "./api/converse-edge"
 import { forwardRef, LegacyRef, useEffect, useRef, useState } from "react"
 import Head from "next/head"
 import { SubmitHandler, useForm } from "react-hook-form"
@@ -6,10 +10,13 @@ import useServerSentEvents from "hooks/useServerSentEvents"
 import LogoOpenAI from "components/icons/LogoOpenAI"
 import LogoUser from "components/icons/LogoUser"
 import { inter } from "lib/fonts"
+import { fetchEventSource } from "@microsoft/fetch-event-source"
 
 interface FormData {
   prompt: string
 }
+class RetriableError extends Error {}
+class FatalError extends Error {}
 
 function MessageHuman({ message }: { message: string }) {
   return (
@@ -75,42 +82,6 @@ export default function Page() {
     setFocus,
   } = useForm<FormData>()
 
-  const { openStream } = useServerSentEvents<RequestQueryConversation>({
-    baseUrl: "/api/converse-edge",
-    config: {
-      withCredentials: false,
-    },
-    onData,
-    onOpen: () => {
-      if (answerNode.current) {
-        answerNode.current.innerText = ""
-      }
-    },
-    onClose: () => {
-      setStreaming(false)
-      setConversation((prev) => {
-        return {
-          ...prev,
-          history: [
-            ...prev.history,
-            {
-              speaker: "bot",
-              text: answerNode.current?.innerText.replace(
-                /<br>/g,
-                "\n"
-              ) as string,
-            },
-          ],
-        }
-      })
-    },
-    onError: (event) => {
-      console.error(event)
-      setStreaming(false)
-      setError(`Something went wrong with the request`)
-    },
-  })
-
   function onData(data: string) {
     if (!answerNode.current) {
       return
@@ -122,8 +93,29 @@ export default function Page() {
       }
     } catch (err) {
       console.log(`Failed to parse data: ${data}`)
-      setError(`Failed to parse the response`)
+      if (data !== "[DONE]") {
+        setError(`Failed to parse the response`)
+      }
     }
+  }
+
+  function onClose() {
+    setStreaming(false)
+    setConversation((prev) => {
+      return {
+        ...prev,
+        history: [
+          ...prev.history,
+          {
+            speaker: "bot",
+            text: answerNode.current?.innerText.replace(
+              /<br>/g,
+              "\n"
+            ) as string,
+          },
+        ],
+      }
+    })
   }
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
@@ -143,10 +135,77 @@ export default function Page() {
     }
 
     setConversation(newConversation)
-    const evtSource = openStream({
-      query: {
-        conversation: JSON.stringify(newConversation),
-        temperature: "0.7",
+
+    const paramsObj: RequestBodyPrompt = {
+      conversation: JSON.stringify(newConversation),
+      temperature: "0.7",
+    }
+    const ctrl = new AbortController()
+
+    fetchEventSource("/api/converse-edge", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(paramsObj),
+      signal: ctrl.signal,
+      async onopen(response) {
+        // answerValue.current = ""
+        if (answerNode.current) {
+          answerNode.current.innerText = ""
+        }
+        console.log("onopen")
+        if (
+          response.ok &&
+          response.headers.get("content-type")?.replace(/ /g, "") ===
+            HEADERS_STREAM["Content-Type"]
+        ) {
+          // all good
+          return
+        } else if (
+          response.status >= 400 &&
+          response.status < 500 &&
+          response.status !== 429
+        ) {
+          // client-side errors are usually non-retriable:
+          throw new FatalError()
+        } else {
+          throw new RetriableError()
+        }
+      },
+      onmessage(msg) {
+        // if the server emits an error message, throw an exception
+        // so it gets handled by the onerror callback below:
+        if (msg.event === "FatalError") {
+          throw new FatalError(msg.data)
+        }
+        try {
+          onData(msg.data)
+        } catch (error) {
+          console.log("aborting")
+          ctrl.abort()
+          onClose()
+        }
+      },
+      onclose() {
+        // if the server closes the connection unexpectedly, retry:
+        // throw new RetriableError()
+
+        onClose()
+      },
+      onerror(err) {
+        if (err instanceof FatalError) {
+          console.log("onerror fatal", err)
+          // rethrow to stop the operation
+          // setAwaitingFirstToken(false)
+          setStreaming(false)
+          setError(`Something went wrong with the request`)
+          // throw err
+        } else {
+          console.log("onerror other", err)
+          // do nothing to automatically retry. You can also
+          // return a specific retry interval here.
+        }
       },
     })
   }
@@ -277,7 +336,7 @@ export default function Page() {
             </div>
           </div>
         </form>
-        <div className="lg:mx-auto lg:max-w-3xl py-4">
+        <div className="lg:mx-auto lg:max-w-3xl px-2 py-4">
           {error ? (
             <p className="text-sm text-red-500">{error}</p>
           ) : (

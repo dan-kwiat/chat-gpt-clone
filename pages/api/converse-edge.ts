@@ -17,9 +17,16 @@ export interface Conversation {
   history: Array<Speech>
 }
 
-export interface RequestQueryConversation {
+export interface RequestBodyPrompt {
   conversation: string
   temperature: string
+}
+
+export const HEADERS_STREAM = {
+  "Access-Control-Allow-Origin": "*",
+  "Content-Type": "text/event-stream;charset=utf-8",
+  "Cache-Control": "no-cache, no-transform",
+  "X-Accel-Buffering": "no",
 }
 
 type Messages = Parameters<typeof openai.createChatCompletion>[0]["messages"]
@@ -60,13 +67,13 @@ function validateTemperature(temperature: number) {
 }
 
 const handler = async (req: NextRequest) => {
-  const { searchParams } = new URL(req.url)
+  const body: RequestBodyPrompt = await req.json()
 
   let conversation: Conversation
   let temperature: number
   try {
-    conversation = JSON.parse(searchParams.get("conversation") as string)
-    temperature = parseFloat(searchParams.get("temperature") as string)
+    conversation = JSON.parse(body.conversation)
+    temperature = parseFloat(body.temperature)
     validateConversation(conversation)
     validateTemperature(temperature)
   } catch (e: any) {
@@ -91,12 +98,7 @@ const handler = async (req: NextRequest) => {
     })
 
     return new Response(completion.body, {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Content-Type": "text/event-stream;charset=utf-8",
-        "Cache-Control": "no-cache, no-transform",
-        "X-Accel-Buffering": "no",
-      },
+      headers: HEADERS_STREAM,
     })
   } catch (error: any) {
     console.error(error)
