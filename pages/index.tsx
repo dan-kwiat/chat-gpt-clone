@@ -87,9 +87,6 @@ export default function Page() {
       }
     },
     onClose: () => {
-      document
-        .getElementById(`speech-${conversation.history.length - 1}`)
-        ?.scrollIntoView({ behavior: "smooth" })
       setStreaming(false)
       setConversation((prev) => {
         return {
