@@ -63,6 +63,7 @@ export default function Page() {
     handleSubmit,
     formState: { errors },
     reset,
+    setFocus,
   } = useForm<FormData>()
 
   const { openStream } = useServerSentEvents<RequestQueryConversation>({
@@ -163,6 +164,10 @@ export default function Page() {
       }
     }
   }, [answerNode.current])
+
+  useEffect(() => {
+    setFocus("prompt")
+  }, [conversation.history])
 
   return (
     <div className={`dark:bg-gray-800 ${inter.className}`}>
