@@ -1,11 +1,11 @@
 import { Conversation, RequestQueryConversation } from "./api/converse-edge"
-import { forwardRef, LegacyRef, useRef, useState } from "react"
+import { forwardRef, LegacyRef, useEffect, useRef, useState } from "react"
 import Head from "next/head"
-import { Inter } from "@next/font/google"
 import { SubmitHandler, useForm } from "react-hook-form"
 import useServerSentEvents from "hooks/useServerSentEvents"
 import LogoOpenAI from "components/icons/LogoOpenAI"
 import LogoUser from "components/icons/LogoUser"
+import { inter } from "lib/fonts"
 
 interface FormData {
   prompt: string
@@ -52,7 +52,7 @@ const MessageBot = forwardRef(
 MessageBot.displayName = "MessageBot"
 
 export default function Page() {
-  const bioNode = useRef<HTMLParagraphElement>(null)
+  const answerNode = useRef<HTMLParagraphElement>(null)
   const [conversation, setConversation] = useState<Conversation>({
     history: [],
   })
@@ -73,9 +73,9 @@ export default function Page() {
     onData,
     onOpen: () => {
       reset()
-      if (bioNode.current) {
+      if (answerNode.current) {
         console.log("resetting")
-        bioNode.current.innerText = ""
+        answerNode.current.innerText = ""
       }
     },
     onClose: () => {
@@ -90,7 +90,10 @@ export default function Page() {
             ...prev.history,
             {
               speaker: "bot",
-              text: bioNode.current?.innerText.replace(/<br>/g, "\n") as string,
+              text: answerNode.current?.innerText.replace(
+                /<br>/g,
+                "\n"
+              ) as string,
             },
           ],
         }
@@ -104,13 +107,13 @@ export default function Page() {
   })
 
   function onData(data: string) {
-    if (!bioNode.current) {
+    if (!answerNode.current) {
       return
     }
     try {
       let text = JSON.parse(data).choices[0].delta.content
       if (text) {
-        bioNode.current.innerText = bioNode.current.innerText + text
+        answerNode.current.innerText = answerNode.current.innerText + text
       }
     } catch (err) {
       console.log(`Failed to parse data: ${data}`)
@@ -119,8 +122,8 @@ export default function Page() {
   }
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
-    if (bioNode.current) {
-      bioNode.current.innerText = "..."
+    if (answerNode.current) {
+      answerNode.current.innerText = "..."
     }
     setStreaming(true)
 
@@ -140,8 +143,29 @@ export default function Page() {
     })
   }
 
+  useEffect(() => {
+    const observer = new ResizeObserver((entries) => {
+      // TODO: debounce scroll?
+      console.log("scrolling", document.body.scrollHeight)
+      window.scroll({
+        top: document.body.scrollHeight,
+        behavior: "smooth",
+      })
+    })
+
+    if (answerNode.current) {
+      observer.observe(answerNode.current)
+    }
+
+    return () => {
+      if (answerNode.current) {
+        observer.unobserve(answerNode.current)
+      }
+    }
+  }, [answerNode.current])
+
   return (
-    <div className="dark:bg-gray-800">
+    <div className={`dark:bg-gray-800 ${inter.className}`}>
       {/* <div className="border-b">
         <div className="md:max-w-2xl lg:max-w-2xl xl:max-w-3xl mx-auto">
           <h1 className="dark:text-white text-lg font-bold py-4">
@@ -149,24 +173,25 @@ export default function Page() {
           </h1>
         </div>
       </div> */}
-      <main className="relative min-h-screen w-full transition-width flex flex-col overflow-hidden items-stretch flex-1">
-        <div className="flex-1 overflow-hidden">
-          <div className="h-full overflow-y-auto">
-            <div className="flex flex-col items-center text-sm h-full dark:bg-gray-800">
-              {conversation.history.map((x, i) =>
-                x.speaker === "human" ? (
-                  <MessageHuman key={i} message={x.text} />
-                ) : (
-                  <MessageBot key={i} message={x.text} />
-                )
-              )}
-              <MessageBot ref={bioNode} message="..." hidden={!streaming} />
-              <div className="w-full h-48 flex-shrink-0"></div>
-            </div>
-          </div>
-        </div>
+      <Head>
+        <link rel="icon" href="/favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>CloneGPT</title>
+        <meta name="description" content="A basic clone of ChatGPT" />
+        <meta name="og:title" content="CloneGPT" />
+        <meta name="og:url" content="https://clone-gpt.vercel.app/" />
+      </Head>
+      <main className="relative w-full flex flex-col items-center dark:bg-gray-800 text-sm overflow-hidden pb-24 md:pb-40">
+        {conversation.history.map((x, i) =>
+          x.speaker === "human" ? (
+            <MessageHuman key={i} message={x.text} />
+          ) : (
+            <MessageBot key={i} message={x.text} />
+          )
+        )}
+        <MessageBot ref={answerNode} message="..." hidden={!streaming} />
       </main>
-      <div className="fixed bottom-0 inset-x-0 border-t md:border-t-0 dark:border-white/20 md:border-transparent md:dark:border-transparent md:bg-vert-light-gradient bg-white dark:bg-gray-800 md:!bg-transparent dark:md:bg-vert-dark-gradient">
+      <div className="fixed bottom-0 bg-gray-50 inset-x-0 border-t dark:border-white/20 dark:bg-gray-800">
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="stretch mx-2 flex flex-row gap-3 pt-2 last:mb-2 md:last:mb-6 lg:mx-auto lg:max-w-3xl lg:pt-6"
