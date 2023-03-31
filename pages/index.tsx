@@ -41,7 +41,16 @@ const MessageBot = forwardRef(
           </div>
           <div className="min-h-[20px] whitespace-pre-wrap">
             <div className="break-words">
-              <p ref={ref}>{message}</p>
+              <p
+                ref={ref}
+                className={
+                  ref && !hidden
+                    ? "after:content-[''] after:-mb-1 after:inline-block after:animate-blink after:h-5 after:w-2 after:bg-gray-600 after:dark:bg-gray-400"
+                    : ""
+                }
+              >
+                {message}
+              </p>
             </div>
           </div>
         </div>
@@ -62,7 +71,7 @@ export default function Page() {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
+    setValue,
     setFocus,
   } = useForm<FormData>()
 
@@ -73,7 +82,7 @@ export default function Page() {
     },
     onData,
     onOpen: () => {
-      reset()
+      // reset()
       if (answerNode.current) {
         console.log("resetting")
         answerNode.current.innerText = ""
@@ -124,9 +133,10 @@ export default function Page() {
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
     if (answerNode.current) {
-      answerNode.current.innerText = "..."
+      answerNode.current.innerText = ""
     }
     setStreaming(true)
+    setValue("prompt", "")
 
     const newConversation: Conversation = {
       history: [
@@ -194,7 +204,7 @@ export default function Page() {
             <MessageBot key={i} message={x.text} />
           )
         )}
-        <MessageBot ref={answerNode} message="..." hidden={!streaming} />
+        <MessageBot ref={answerNode} message="" hidden={!streaming} />
       </main>
       <div className="fixed bottom-0 bg-gray-50 inset-x-0 border-t dark:border-white/20 dark:bg-gray-800">
         <form
