@@ -135,6 +135,7 @@ export default function Page() {
     }
     setStreaming(true)
     setValue("prompt", "")
+    document.getElementsByTagName("textarea")[0].style.height = "auto"
 
     const newConversation: Conversation = {
       history: [
@@ -242,8 +243,6 @@ export default function Page() {
                 onKeyUp={(e) => {
                   const textarea = e.target as HTMLTextAreaElement
                   if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault()
-                    textarea.style.height = "auto"
                     handleSubmit(onSubmit)()
                   } else {
                     textarea.style.height = "auto" // Reset the height to its default to allow it to shrink when deleting text
