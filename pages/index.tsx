@@ -136,9 +136,7 @@ export default function Page() {
     setStreaming(true)
     setValue("prompt", "")
 
-    if (typeof document !== "undefined") {
-      document.getElementsByTagName("textarea")[0].style.height = "auto"
-    }
+    document.getElementsByTagName("textarea")[0].style.height = "auto"
 
     const newConversation: Conversation = {
       history: [
@@ -157,6 +155,10 @@ export default function Page() {
   }
 
   useEffect(() => {
+    if (typeof ResizeObserver === "undefined") {
+      return () => {}
+    }
+
     const observer = new ResizeObserver((entries) => {
       // TODO: debounce scroll?
       window.scroll({
