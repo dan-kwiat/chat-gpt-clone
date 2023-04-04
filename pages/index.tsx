@@ -6,7 +6,6 @@ import {
 import { forwardRef, LegacyRef, useEffect, useRef, useState } from "react"
 import Head from "next/head"
 import { SubmitHandler, useForm } from "react-hook-form"
-import useServerSentEvents from "hooks/useServerSentEvents"
 import LogoOpenAI from "components/icons/LogoOpenAI"
 import LogoUser from "components/icons/LogoUser"
 import { inter } from "lib/fonts"
@@ -20,9 +19,9 @@ class FatalError extends Error {}
 
 function MessageHuman({ message }: { message: string }) {
   return (
-    <div className="w-full border-b border-black/10 dark:border-gray-900/50 text-gray-800 dark:text-gray-100 group dark:bg-gray-800">
-      <div className="text-base space-x-4 md:space-x-6 m-auto md:max-w-2xl lg:max-w-2xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0">
-        <div className="bg-gray-300 relative w-8 h-8 p-1 rounded-sm text-gray-600 flex items-center justify-center">
+    <div className="group w-full border-b border-black/10 text-gray-800 dark:border-gray-900/50 dark:bg-gray-800 dark:text-gray-100">
+      <div className="m-auto flex space-x-4 p-4 text-base md:max-w-2xl md:space-x-6 md:py-6 lg:max-w-2xl lg:px-0 xl:max-w-3xl">
+        <div className="relative flex h-8 w-8 items-center justify-center rounded-sm bg-gray-300 p-1 text-gray-600">
           <LogoUser className="h-6 w-6" />
         </div>
         <div className="min-h-[20px] whitespace-pre-wrap">{message}</div>
@@ -40,10 +39,10 @@ const MessageBot = forwardRef(
       <div
         className={`${
           hidden ? "hidden" : "block"
-        } w-full border-b border-black/10 dark:border-gray-900/50 text-gray-800 dark:text-gray-100 group bg-gray-50 dark:bg-[#444654]`}
+        } group w-full border-b border-black/10 bg-gray-50 text-gray-800 dark:border-gray-900/50 dark:bg-[#444654] dark:text-gray-100`}
       >
-        <div className="text-base space-x-4 md:space-x-6 m-auto md:max-w-2xl lg:max-w-2xl xl:max-w-3xl p-4 md:py-6 flex lg:px-0">
-          <div className="bg-[#10a37f] relative w-8 h-8 p-1 rounded-sm text-white flex items-center justify-center">
+        <div className="m-auto flex space-x-4 p-4 text-base md:max-w-2xl md:space-x-6 md:py-6 lg:max-w-2xl lg:px-0 xl:max-w-3xl">
+          <div className="relative flex h-8 w-8 items-center justify-center rounded-sm bg-[#10a37f] p-1 text-white">
             <LogoOpenAI className="h-6 w-6" />
           </div>
           <div className="min-h-[20px] whitespace-pre-wrap">
@@ -52,7 +51,7 @@ const MessageBot = forwardRef(
                 ref={ref}
                 className={
                   ref && !hidden
-                    ? "after:content-[''] after:-mb-1 after:inline-block after:animate-blink after:h-5 after:w-2 after:bg-gray-600 after:dark:bg-gray-400"
+                    ? "after:-mb-1 after:inline-block after:h-5 after:w-2 after:animate-blink after:bg-gray-600 after:content-[''] after:dark:bg-gray-400"
                     : ""
                 }
               >
@@ -248,7 +247,7 @@ export default function Page() {
         <meta name="og:title" content="CloneGPT" />
         <meta name="og:url" content="https://clone-gpt.vercel.app/" />
       </Head>
-      <main className="relative w-full flex flex-col items-center text-sm overflow-hidden pb-24 md:pb-40">
+      <main className="relative flex w-full flex-col items-center overflow-hidden pb-24 text-sm md:pb-40">
         {conversation.history.length > 0 ? (
           conversation.history.map((x, i) =>
             x.speaker === "human" ? (
@@ -265,78 +264,47 @@ export default function Page() {
         )}
         <MessageBot ref={answerNode} message="" hidden={!streaming} />
       </main>
-      <div className="fixed bottom-0 bg-gray-50 inset-x-0 border-t dark:border-white/20 dark:bg-gray-800">
+      <div className="fixed inset-x-0 bottom-0 border-t bg-gray-50 py-2 dark:border-white/20 dark:bg-gray-800 lg:py-4">
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="stretch mx-2 flex flex-row gap-3 pt-2 last:mb-2 md:last:mb-6 lg:mx-auto lg:max-w-3xl lg:pt-6"
+          className="relative mx-2 flex flex-row items-center space-x-2 lg:mx-auto lg:max-w-3xl"
         >
-          <div className="relative flex h-full flex-1 md:flex-col">
-            {/* <div className="ml-1 mt-1.5 hidden md:w-full md:m-auto md:flex md:mb-2 gap-2 justify-center">
-                <button
-                  type="button"
-                  disabled
-                  className="cursor-not-allowed items-center bg-white border-gray-900 text-[#40414F]  dark:bg-[#343541] dark:border-[#565869] dark:text-[#D9D9E3] border-transparent rounded-md border inline-flex text-sm px-3 py-2 pointer-events-auto justify-center"
-                >
-                  <svg
-                    stroke="currentColor"
-                    fill="none"
-                    strokeWidth="1.5"
-                    viewBox="0 0 24 24"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-3 w-3 mr-2"
-                    height="1em"
-                    width="1em"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <polyline points="1 4 1 10 7 10"></polyline>
-                    <polyline points="23 20 23 14 17 14"></polyline>
-                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
-                  </svg>
-                  Regenerate response
-                </button>
-              </div> */}
-            <div className="flex flex-col w-full py-2 flex-grow md:py-3 md:pl-4 relative border border-black/10 bg-white dark:border-gray-900/50 dark:text-white dark:bg-gray-700 rounded-md shadow-[0_0_10px_rgba(0,0,0,0.10)] dark:shadow-[0_0_15px_rgba(0,0,0,0.10)]">
-              <textarea
-                tabIndex={0}
-                rows={1}
-                placeholder=""
-                onKeyUp={(e) => {
-                  const textarea = e.target as HTMLTextAreaElement
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    handleSubmit(onSubmit)()
-                  } else {
-                    textarea.style.height = "auto" // Reset the height to its default to allow it to shrink when deleting text
-                    textarea.style.height = `${textarea.scrollHeight}px` // Set the height to the scroll height so that it expands on new lines
-                  }
-                }}
-                className="max-h-52 h-6 overflow-y-hidden m-0 w-full resize-none border-0 bg-transparent p-0 pl-2 pr-7 focus:ring-0 focus-visible:ring-0 dark:bg-transparent md:pl-0"
-                {...register("prompt", {
-                  required: true,
-                  disabled: streaming,
-                })}
-              />
-              <button
-                type="submit"
-                className="absolute p-1 rounded-md text-gray-500 bottom-1.5 right-1 md:bottom-2.5 md:right-2 hover:bg-gray-100 dark:hover:text-gray-400 dark:hover:bg-gray-900 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent"
-              >
-                <svg
-                  stroke="currentColor"
-                  fill="currentColor"
-                  strokeWidth="0"
-                  viewBox="0 0 20 20"
-                  className="h-4 w-4 rotate-90"
-                  height="1em"
-                  width="1em"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
+          <textarea
+            tabIndex={0}
+            rows={1}
+            placeholder=""
+            onKeyUp={(e) => {
+              const textarea = e.target as HTMLTextAreaElement
+              if (e.key === "Enter" && !e.shiftKey) {
+                handleSubmit(onSubmit)()
+              } else {
+                textarea.style.height = "auto" // Reset the height to its default to allow it to shrink when deleting text
+                textarea.style.height = `${textarea.scrollHeight}px` // Set the height to the scroll height so that it expands on new lines
+              }
+            }}
+            className="max-h-52 w-full resize-none overflow-y-auto rounded-md border-0 bg-white p-2 text-gray-900 shadow-[0_0_10px_rgba(0,0,0,0.10)] ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-700 dark:text-gray-200 dark:shadow-[0_0_15px_rgba(0,0,0,0.10)] dark:ring-gray-800 md:p-3 lg:pr-7"
+            {...register("prompt", {
+              required: true,
+              disabled: streaming,
+            })}
+          />
+          <button
+            type="submit"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:hover:bg-transparent dark:bg-gray-900 dark:hover:bg-black dark:hover:text-gray-400 dark:disabled:hover:bg-transparent lg:absolute lg:bottom-2.5 lg:right-2 lg:h-auto lg:w-auto lg:rounded-none lg:bg-transparent lg:p-1 lg:hover:bg-transparent"
+          >
+            <svg
+              stroke="currentColor"
+              fill="currentColor"
+              strokeWidth="0"
+              viewBox="0 0 20 20"
+              className="h-5 w-5 rotate-90 lg:h-4 lg:w-4"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
+            </svg>
+          </button>
         </form>
-        <div className="lg:mx-auto lg:max-w-3xl px-2 py-4">
+        <div className="px-2 py-4 lg:mx-auto lg:max-w-3xl">
           {error ? (
             <p className="text-sm text-red-500">{error}</p>
           ) : (
