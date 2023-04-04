@@ -269,7 +269,11 @@ export default function Page() {
           onSubmit={handleSubmit(onSubmit)}
           className="relative mx-2 flex flex-row items-center space-x-2 lg:mx-auto lg:max-w-3xl"
         >
+          <label htmlFor="chatbot-input" className="sr-only">
+            Ask a question
+          </label>
           <textarea
+            id="chatbot-input"
             tabIndex={0}
             rows={1}
             placeholder=""
