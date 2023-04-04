@@ -276,7 +276,12 @@ export default function Page() {
             onKeyUp={(e) => {
               const textarea = e.target as HTMLTextAreaElement
               if (e.key === "Enter" && !e.shiftKey) {
-                handleSubmit(onSubmit)()
+                const isEmpty = textarea.value.trim() === ""
+                if (isEmpty) {
+                  textarea.value = ""
+                } else {
+                  handleSubmit(onSubmit)()
+                }
               } else {
                 textarea.style.height = "auto" // Reset the height to its default to allow it to shrink when deleting text
                 textarea.style.height = `${textarea.scrollHeight}px` // Set the height to the scroll height so that it expands on new lines
