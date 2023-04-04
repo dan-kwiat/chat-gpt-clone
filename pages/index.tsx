@@ -17,15 +17,25 @@ interface FormData {
 class RetriableError extends Error {}
 class FatalError extends Error {}
 
+function Container({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="px-2 sm:px-4 md:mx-auto md:max-w-2xl md:px-0 xl:max-w-3xl">
+      {children}
+    </div>
+  )
+}
+
 function MessageHuman({ message }: { message: string }) {
   return (
     <div className="group w-full border-b border-black/10 text-gray-800 dark:border-gray-900/50 dark:bg-gray-800 dark:text-gray-100">
-      <div className="m-auto flex space-x-4 p-4 text-base md:max-w-2xl md:space-x-6 md:py-6 lg:max-w-2xl lg:px-0 xl:max-w-3xl">
-        <div className="relative flex h-8 w-8 items-center justify-center rounded-sm bg-gray-300 p-1 text-gray-600">
-          <LogoUser className="h-6 w-6" />
+      <Container>
+        <div className="flex space-x-4 py-4 text-base md:space-x-6 md:py-6">
+          <div className="relative flex h-8 w-8 items-center justify-center rounded-sm bg-gray-300 p-1 text-gray-600">
+            <LogoUser className="h-6 w-6" />
+          </div>
+          <div className="min-h-[20px] whitespace-pre-wrap">{message}</div>
         </div>
-        <div className="min-h-[20px] whitespace-pre-wrap">{message}</div>
-      </div>
+      </Container>
     </div>
   )
 }
@@ -41,25 +51,27 @@ const MessageBot = forwardRef(
           hidden ? "hidden" : "block"
         } group w-full border-b border-black/10 bg-gray-50 text-gray-800 dark:border-gray-900/50 dark:bg-[#444654] dark:text-gray-100`}
       >
-        <div className="m-auto flex space-x-4 p-4 text-base md:max-w-2xl md:space-x-6 md:py-6 lg:max-w-2xl lg:px-0 xl:max-w-3xl">
-          <div className="relative flex h-8 w-8 items-center justify-center rounded-sm bg-[#10a37f] p-1 text-white">
-            <LogoOpenAI className="h-6 w-6" />
-          </div>
-          <div className="min-h-[20px] whitespace-pre-wrap">
-            <div className="break-words">
-              <p
-                ref={ref}
-                className={
-                  ref && !hidden
-                    ? "after:-mb-1 after:inline-block after:h-5 after:w-2 after:animate-blink after:bg-gray-600 after:content-[''] after:dark:bg-gray-400"
-                    : ""
-                }
-              >
-                {message}
-              </p>
+        <Container>
+          <div className="flex space-x-4 py-4 text-base md:space-x-6 md:py-6">
+            <div className="relative flex h-8 w-8 items-center justify-center rounded-sm bg-[#10a37f] p-1 text-white">
+              <LogoOpenAI className="h-6 w-6" />
+            </div>
+            <div className="min-h-[20px] whitespace-pre-wrap">
+              <div className="break-words">
+                <p
+                  ref={ref}
+                  className={
+                    ref && !hidden
+                      ? "after:-mb-1 after:inline-block after:h-5 after:w-2 after:animate-blink after:bg-gray-600 after:content-[''] after:dark:bg-gray-400"
+                      : ""
+                  }
+                >
+                  {message}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        </Container>
       </div>
     )
   }
@@ -264,80 +276,82 @@ export default function Page() {
         )}
         <MessageBot ref={answerNode} message="" hidden={!streaming} />
       </main>
-      <div className="fixed inset-x-0 bottom-0 border-t bg-gray-50 py-2 dark:border-white/20 dark:bg-gray-800 lg:py-4">
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="relative mx-2 flex flex-row items-center space-x-2 lg:mx-auto lg:max-w-3xl"
-        >
-          <label htmlFor="chatbot-input" className="sr-only">
-            Ask a question
-          </label>
-          <textarea
-            id="chatbot-input"
-            tabIndex={0}
-            rows={1}
-            placeholder=""
-            onKeyUp={(e) => {
-              const textarea = e.target as HTMLTextAreaElement
-              if (e.key === "Enter" && !e.shiftKey) {
-                const isEmpty = textarea.value.trim() === ""
-                if (isEmpty) {
-                  textarea.value = ""
-                } else {
-                  handleSubmit(onSubmit)()
-                }
-              } else {
-                textarea.style.height = "auto" // Reset the height to its default to allow it to shrink when deleting text
-                textarea.style.height = `${textarea.scrollHeight}px` // Set the height to the scroll height so that it expands on new lines
-              }
-            }}
-            className="max-h-52 w-full resize-none overflow-y-auto rounded-md border-0 bg-white p-2 text-gray-900 shadow-[0_0_10px_rgba(0,0,0,0.10)] ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-700 dark:text-gray-200 dark:shadow-[0_0_15px_rgba(0,0,0,0.10)] dark:ring-gray-800 md:p-3 lg:pr-7"
-            {...register("prompt", {
-              required: true,
-              disabled: streaming,
-            })}
-          />
-          <button
-            type="submit"
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:hover:bg-transparent dark:bg-gray-900 dark:hover:bg-black dark:hover:text-gray-400 dark:disabled:hover:bg-transparent lg:absolute lg:bottom-2.5 lg:right-2 lg:h-auto lg:w-auto lg:rounded-none lg:bg-transparent lg:p-1 lg:hover:bg-transparent"
+      <div className="fixed inset-x-0 bottom-0 border-t bg-gray-50 py-2 dark:border-white/20 dark:bg-gray-800 sm:py-4">
+        <Container>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="relative flex flex-row items-center"
           >
-            <svg
-              stroke="currentColor"
-              fill="currentColor"
-              strokeWidth="0"
-              viewBox="0 0 20 20"
-              className="h-5 w-5 rotate-90 lg:h-4 lg:w-4"
-              xmlns="http://www.w3.org/2000/svg"
+            <label htmlFor="chatbot-input" className="sr-only">
+              Ask a question
+            </label>
+            <textarea
+              id="chatbot-input"
+              tabIndex={0}
+              rows={1}
+              placeholder=""
+              onKeyUp={(e) => {
+                const textarea = e.target as HTMLTextAreaElement
+                if (e.key === "Enter" && !e.shiftKey) {
+                  const isEmpty = textarea.value.trim() === ""
+                  if (isEmpty) {
+                    textarea.value = ""
+                  } else {
+                    handleSubmit(onSubmit)()
+                  }
+                } else {
+                  textarea.style.height = "auto" // Reset the height to its default to allow it to shrink when deleting text
+                  textarea.style.height = `${textarea.scrollHeight}px` // Set the height to the scroll height so that it expands on new lines
+                }
+              }}
+              className="max-h-52 w-full resize-none overflow-y-auto rounded-md border-0 bg-white p-2 text-gray-900 shadow-[0_0_10px_rgba(0,0,0,0.10)] ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:bg-gray-700 dark:text-gray-200 dark:shadow-[0_0_15px_rgba(0,0,0,0.10)] dark:ring-gray-800 md:p-3 lg:pr-7"
+              {...register("prompt", {
+                required: true,
+                disabled: streaming,
+              })}
+            />
+            <button
+              type="submit"
+              className="ml-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:hover:bg-transparent dark:bg-gray-900 dark:hover:bg-black dark:hover:text-gray-400 dark:disabled:hover:bg-transparent lg:absolute lg:bottom-2.5 lg:right-2 lg:ml-0 lg:h-auto lg:w-auto lg:rounded-none lg:bg-transparent lg:p-1 lg:hover:bg-transparent"
             >
-              <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
-            </svg>
-          </button>
-        </form>
-        <div className="px-2 py-4 lg:mx-auto lg:max-w-3xl">
-          {error ? (
-            <p className="text-sm text-red-500">{error}</p>
-          ) : (
-            <div className="space-x-2 text-center text-xs text-black/50 dark:text-white/50 md:px-4 md:pt-3 md:pb-6">
-              <a
-                href="https://github.com/dan-kwiat/chat-gpt-clone"
-                target="_blank"
-                rel="noreferrer"
-                className="underline"
+              <svg
+                stroke="currentColor"
+                fill="currentColor"
+                strokeWidth="0"
+                viewBox="0 0 20 20"
+                className="h-5 w-5 rotate-90 lg:h-4 lg:w-4"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                GitHub Repo
-              </a>{" "}
-              <span>&middot;</span>{" "}
-              <a
-                href="https://dan.kwiat.info/projects"
-                target="_blank"
-                rel="noreferrer"
-                className="underline"
-              >
-                More Projects
-              </a>
-            </div>
-          )}
-        </div>
+                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
+              </svg>
+            </button>
+          </form>
+          <div className="mt-4">
+            {error ? (
+              <p className="text-sm text-red-500">{error}</p>
+            ) : (
+              <div className="space-x-2 text-center text-xs text-black/50 dark:text-white/50 md:px-4 md:pt-3 md:pb-6">
+                <a
+                  href="https://github.com/dan-kwiat/chat-gpt-clone"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline"
+                >
+                  GitHub Repo
+                </a>{" "}
+                <span>&middot;</span>{" "}
+                <a
+                  href="https://dan.kwiat.info/projects"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline"
+                >
+                  More Projects
+                </a>
+              </div>
+            )}
+          </div>
+        </Container>
       </div>
     </div>
   )
