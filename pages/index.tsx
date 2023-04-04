@@ -159,6 +159,7 @@ export default function Page() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(paramsObj),
+      openWhenHidden: true,
       signal: ctrl.signal,
       async onopen(response) {
         // answerValue.current = ""
