@@ -1,5 +1,4 @@
 import type { NextRequest } from "next/server"
-import { HEADERS_STREAM } from "./converse-edge"
 import cors from "lib/cors"
 
 export interface SamplingParameters {
@@ -36,7 +35,12 @@ async function getResponse(req: NextRequest) {
     })
 
     return new Response(completion.body, {
-      headers: HEADERS_STREAM,
+      status: completion.status,
+      statusText: completion.statusText,
+      headers: {
+        "content-type": completion.headers.get("content-type") || "",
+        // should we forward other headers too?
+      },
     })
   } catch (error) {
     return new Response(JSON.stringify(error), {
