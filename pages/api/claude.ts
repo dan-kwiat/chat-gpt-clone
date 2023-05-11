@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server"
 import { HEADERS_STREAM } from "./converse-edge"
+import cors from "lib/cors"
 
 export interface SamplingParameters {
   prompt: string
@@ -12,7 +13,7 @@ export interface SamplingParameters {
   tags?: { [key: string]: string }
 }
 
-export default async function handler(req: NextRequest) {
+async function getResponse(req: NextRequest) {
   const ANTHROPIC_API_KEY = req.headers.get("x-api-key")
 
   if (!ANTHROPIC_API_KEY) {
@@ -45,6 +46,10 @@ export default async function handler(req: NextRequest) {
       },
     })
   }
+}
+
+export default async function handler(req: NextRequest) {
+  return cors(req, await getResponse(req))
 }
 
 export const config = {
