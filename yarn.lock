@@ -1615,10 +1615,10 @@ open@^8.4.0:
     is-docker "^2.1.1"
     is-wsl "^2.2.0"
 
-openai-edge@^0.6.1:
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/openai-edge/-/openai-edge-0.6.1.tgz#251bbb7b392bfa93471028754e77cfb844a1cebe"
-  integrity sha512-CyKxNH245kslVbm5/r8iFJT2mMpKLR/KKfr2K4qTe1RNO6ajKnDnYWePBCbuedR7MbGeBtb05KTGhZq6sg2jhg==
+openai-edge@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/openai-edge/-/openai-edge-1.0.0.tgz#8ed5d4833dea8433ddaddaa292a0ffa7d5fbcc9d"
+  integrity sha512-psrC4fxpP87tWIUaALkqn9cW/8WxvAUOuHG93iXDzXaGsxba/+0QD1RJu2KBiwVTyB6/9q/JxIPRmrCQXD/59Q==
 
 optionator@^0.9.1:
   version "0.9.1"
